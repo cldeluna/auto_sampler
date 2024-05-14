@@ -25,3 +25,11 @@ interface {{ cfg['uplink_po'] }}
 interface {{ cfg['uplink_trunk'] }}
 {% endif %}
   switchport trunk allowed vlan add {{ cfg['vlan_id'] }}
+
+!======== Verification
+
+! show vlan id {{ cfg['vlan_id'] }}
+! Confirm the vlan is configured and active
+!
+! show spanning-tree vlan {{ cfg['vlan_id'] }}
+! Confirm the vlan has a root interface
