@@ -17,6 +17,7 @@
 
 
 !======== New Configuration
+config 7
 vlan {{ cfg['vlan_id'] }}
  name {{ cfg['vlan_name'] }}
 {% if cfg['uplink_po_exists'] %}
@@ -25,7 +26,7 @@ interface {{ cfg['uplink_po'] }}
 interface {{ cfg['uplink_trunk'] }}
 {% endif %}
   switchport trunk allowed vlan add {{ cfg['vlan_id'] }}
-
+end
 !======== Verification
 
 ! show vlan id {{ cfg['vlan_id'] }}
@@ -35,10 +36,12 @@ interface {{ cfg['uplink_trunk'] }}
 ! Confirm the vlan has a root interface
 
 !======== Rollback
-!- no vlan {{ cfg['vlan_id'] }}
+!-config t
+!-no vlan {{ cfg['vlan_id'] }}
 !{% if cfg['uplink_po_exists'] %}
 !-interface {{ cfg['uplink_po'] }}
 !{% else %}
 !-interface {{ cfg['uplink_trunk'] }}
 !{% endif %}
 !-  switchport trunk allowed vlan remove {{ cfg['vlan_id'] }}
+!-end
