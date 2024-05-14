@@ -33,3 +33,12 @@ interface {{ cfg['uplink_trunk'] }}
 !
 ! show spanning-tree vlan {{ cfg['vlan_id'] }}
 ! Confirm the vlan has a root interface
+
+!======== Rollback
+!- no vlan {{ cfg['vlan_id'] }}
+!{% if cfg['uplink_po_exists'] %}
+!-interface {{ cfg['uplink_po'] }}
+!{% else %}
+!-interface {{ cfg['uplink_trunk'] }}
+!{% endif %}
+!-  switchport trunk allowed vlan remove {{ cfg['vlan_id'] }}
