@@ -1,4 +1,9 @@
-
 !======== New Configuration
 vlan {{ cfg['vlan_id'] }}
  name {{ cfg['vlan_name'] }}
+{% if cfg['uplink_po_exists'] %}
+interface {{ cfg['uplink_po'] }}
+{% else %}
+interface {{ cfg['uplink_trunk'] }}
+{% endif %}
+  switchport trunk allowed vlan add {{ cfg['vlan_id'] }}
