@@ -1,3 +1,21 @@
+!==============================================================================
+! {{ cfg['location'] }}
+! New Vlan Configuration Updates, Verification and Rollback
+! Layer 2 Device
+!
+! Change Risk: {{ cfg['risk']  }}
+! Change Impact: {{ cfg['impact']  }}
+!
+! Device: {{ cfg['hostname']  }}
+!
+! Uplink to Device: {{ cfg['uplink_dev']  }}
+!
+! Generated on: {{ cfg['timestamp']  }}
+!
+!======== Configuration Item
+!{{ cfg['hostname']  }}
+
+
 !======== New Configuration
 vlan {{ cfg['vlan_id'] }}
  name {{ cfg['vlan_name'] }}
