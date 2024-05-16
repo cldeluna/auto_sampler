@@ -3,6 +3,8 @@
 ! New Vlan Configuration Updates, Verification and Rollback
 ! Layer 2 Device
 !
+! Change Title: {{ cfg['title'] }}
+!
 ! Change Risk: {{ cfg['risk']  }}
 ! Change Impact: {{ cfg['impact']  }}
 !
@@ -14,9 +16,9 @@
 !
 !======== Configuration Item
 !{{ cfg['hostname']  }}
+!{{ cfg['uplink_dev'] }}
 
-
-!======== New Configuration
+!======== New Configuration for Access and Uplink
 vlan {{ cfg['vlan_id'] }}
  name {{ cfg['vlan_name'] }}
 {% if cfg['uplink_po_exists'] %}
