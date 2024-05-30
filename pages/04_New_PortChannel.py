@@ -33,7 +33,7 @@ def main():
         url = "https://eianow.com/"
         st.markdown(f"**[EIA]({url})**")
 
-        st.image("images/WorkInProgress.png", width=200)
+    st.image("images/WorkInProgress.png", width=200)
 
 
 # Standard call to the main() function.
