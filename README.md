@@ -8,4 +8,4 @@ The cycle below is a fairly common one I've encountered across every enterprise 
 
 I've tried to provide some examples of automation at every stage along with some ideas about user input.
 
-<img src="images/NAF_AnatomyOfNetChange_Landscape.jpg" alt="NAF_AnatomyOfNetChange_Landscape" style="zoom:175%;" />
+<img src="https://github.com/cldeluna/auto_sampler/blob/main/images/NAF_AnatomyOfNetChange.jpg?raw=true" style="zoom:175%;" />
