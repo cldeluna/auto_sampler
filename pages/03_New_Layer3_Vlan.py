@@ -15,14 +15,31 @@ __license__ = "Python"
 
 import streamlit as st
 
+
 def some_function():
     pass
 
 
 def main():
+
+    # Use the full page instead of a narrow central column
+    st.set_page_config(layout="wide")
+
+    with st.sidebar:
+        st.image(
+            "images/EIAlogo_OnWhite-01-Transparent2.jpg",
+            caption="",
+            width=75,
+        )
+
+        url = "https://eianow.com/"
+        st.markdown(f"**[EIA]({url})**")
+
     st.title("Configure New Layer 3 Vlan SVI")
+
+    st.image("images/WorkInProgress.png", width=200)
 
 
 # Standard call to the main() function.
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

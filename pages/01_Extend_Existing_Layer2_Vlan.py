@@ -20,20 +20,31 @@ import datetime
 import utilities
 
 
-def some_function():
-    pass
-
-
 def main():
 
-    # Start of script execution
+    # Use the full page instead of a narrow central column
+    st.set_page_config(layout="wide")
+
+    with st.sidebar:
+        st.image(
+            "images/EIAlogo_OnWhite-01-Transparent2.jpg",
+            caption="",
+            width=75,
+        )
+
+        url = "https://eianow.com/"
+        st.markdown(f"**[EIA]({url})**")
+
+    # Start of script execution (so we can figure out how long it took to execute)
     start_time = datetime.datetime.now()
 
     # Date stamp for Report Output
     file_timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    st.title("Configure New Layer 2 Vlan")
-    # st.write(st.session_state)
+    # Turn True into PASSED for better readabilty by non programmers
+    result_lookup = {True: "PASSED", False: "FAILED"}
+
+    st.title("Extend Existing Layer 2 Vlan")
 
     # Load Well Known Action Dict for New layer2 Vlan
     action = "Existing_Vlan_L2"
@@ -44,12 +55,12 @@ def main():
     vlan_type_list, vlan_guidelines_dict, vlan_guidelines_df = (
         utilities.load_vlan_guidelines()
     )
-    st.write(vlan_guidelines_df)
+    # st.write(vlan_guidelines_df)
     st.markdown("---")
 
     st.subheader("Select Location")
 
-    # Trick to get a unique list of namespaces for the pull down
+    # Trick to get a unique list of namespaces for the pull down to select the location
     namespace_list = utilities.get_namespace_list()
 
     # User interactive Selectbox to Select Namespace
@@ -66,24 +77,9 @@ def main():
     if add_vlan_type:
         # Set the guidelines for the selected vlan
         vlan_type_info_dict = vlan_guidelines_dict[add_vlan_type]
-        # st.write(vlan_type_info_dict["Range"])
 
-        # Now that we have VLAN type we can set min/max values
-        st.subheader("Enter Vlan ID")
-        add_vlan = st.number_input(
-            "Enter Vlan ID",
-            min_value=vlan_type_info_dict["Range"]["start"],
-            max_value=vlan_type_info_dict["Range"]["end"],
-            value=None,
-        )
-        st.write(f"Selected Vlan ID: {add_vlan}")
+        # May use to reduce file name size
         vlan_shortname = vlan_type_info_dict["ShortName"]
-
-        st.subheader(f"Enter Vlan {add_vlan} Subnet")
-        vlan_subnet = st.text_input(
-            f"Enter Subnet Associated with Vlan {add_vlan} in CIDR Notation:"
-        )
-        st.write(f"Vlan Subnet: {vlan_subnet}")
 
         st.subheader(f"Test in Virtual Lab")
         virtual_lab = st.checkbox("Validate Configuration Payload against Virtual Lab")
@@ -94,14 +90,15 @@ def main():
 
         st.markdown("---")
 
-    button_label = "Set Essential Configuration Parameters"
+    # Set up first form to input the essential configuration values - Vlan
+    button_label = "Select Essential Configuration Parameters"
     with st.form(key="Essential_Config_Details"):
         lookup_option = st.form_submit_button(label=button_label)
 
         if lookup_option and (
             add_vlan_type is not None
-            and add_vlan is not None
-            and vlan_subnet
+            # and add_vlan is not None
+            # and vlan_subnet
             and namespace
         ):
 
@@ -110,26 +107,50 @@ def main():
             vlans_found_bool, vlans_in_use = utilities.find_vlans_in_namespace(
                 namespace
             )
+
+            min_value = int(vlan_type_info_dict["Range"]["start"])
+            max_value = int(vlan_type_info_dict["Range"]["end"])
+
             if vlans_found_bool:
-                st.write(vlans_in_use)
+
+                # st.write(f"{vlan_type_info_dict['Description']} Vlans in Use")
+
+                # Initialize the list of vlans for the selected type
+                type_vlan_list = list()
+                for vlan in vlans_in_use:
+                    if vlan > min_value and vlan < max_value:
+                        type_vlan_list.append(vlan)
+
+                st.subheader("Select Existing Vlan Extend")
+                add_vlan = st.selectbox(
+                    label="Select Existing Vlan to Extend",
+                    options=type_vlan_list,
+                    index=None,
+                )
+
             else:
                 st.error(f"Aborting run! Cannot verify Vlans!")
                 st.stop()
 
-            # with the list of all the vlans at the site check to see if the vlan selected exists
-            st.write(f"Checking to see if vlan {add_vlan} exists at site {namespace}")
-            vlan_check_bool = False
-            if int(add_vlan) in vlans_in_use:
-                st.error(
-                    f"👎 Aborting run! Vlan {add_vlan} is already configured at site {namespace}"
-                )
-                st.stop()
-            else:
-                vlan_check_bool = True
-                st.success(f"👍 Vlan {add_vlan} is available at location {namespace}")
+            if add_vlan:
 
-            # If vlan check bool is True it passed the check and the vlan is not in use
-            if vlan_check_bool:
+                # with the list of all the vlans at the site check to see if the vlan selected exists
+                # st.write(f"Checking to see if vlan {add_vlan} exists at site {namespace}")
+                # vlan_check_bool = False
+                # if int(add_vlan) in vlans_in_use:
+                #     st.error(
+                #         f"👎 Aborting run! Vlan {add_vlan} is already configured at site {namespace}"
+                #     )
+                #     st.stop()
+                # else:
+                #     vlan_check_bool = True
+                #     st.success(f"👍 Vlan {add_vlan} is available at location {namespace}")
+
+                # If vlan check bool is True it passed the check and the vlan is not in use
+
+                # Get Existing Vlan Details
+                vlan_details_lod = utilities.find_vlan_at_site(namespace, add_vlan)
+                st.write(vlan_details_lod)
 
                 # Initialize Ready to Deploy to False
                 ready_to_deploy = False
@@ -144,7 +165,7 @@ def main():
                     default=None,
                 )
                 st.info(
-                    f":white_check_mark: Deploy New Layer 2 **{add_vlan}** Vlan to: {add_to_switches_list}"
+                    f":white_check_mark: Deploy Existing Layer 2 **{add_vlan}** Vlan to: {add_to_switches_list}"
                 )
 
                 # For each switch
@@ -162,7 +183,7 @@ def main():
                     intf2_desc = ""
                     uplink_dev = ""
 
-                    # Location/Namespace
+                    # Timestamp
                     cfg_dict.update(
                         {
                             "timestamp": datetime.datetime.now().strftime(
@@ -170,6 +191,9 @@ def main():
                             ),
                         }
                     )
+
+                    # Change Title
+                    cfg_dict.update({"location": namespace})
 
                     # Location/Namespace
                     cfg_dict.update({"location": namespace})
@@ -187,7 +211,7 @@ def main():
                     cfg_dict.update({"vlan_id": add_vlan})
 
                     # Vlan Name
-                    vlan_name = f"{vlan_shortname}_{vlan_subnet}"
+                    vlan_name = vlan_details_lod[0]["vlanName"]
                     cfg_dict.update({"vlan_name": vlan_name})
 
                     # check for bonded interfaces
@@ -229,6 +253,7 @@ def main():
                                 )
                                 intf2_desc = f"To {lldp_lod[0]['peerHostname']}_{lldp_lod[0]['peerIfname']}"
 
+                    # Building a dictionary with all the values we have obtained
                     cfg_dict.update({"uplink_po_exists": po_bool})
                     cfg_dict.update({"uplink_po": po_num})
                     cfg_dict.update({"uplink_po_lod": po_lod})
@@ -247,7 +272,6 @@ def main():
                     if not po_bool:
                         trunk_bool, trunk_lod = utilities.get_intf_trunk_switch(sw)
                         if trunk_bool:
-                            # st.write(trunk_dict)
 
                             st.warning(
                                 f"WARNING: No Port Channel! Found {len(trunk_lod)} uplink trunk port {trunk_lod[0]['ifname']}"
@@ -257,7 +281,6 @@ def main():
                             lldp_bool, lldp_lod = utilities.get_lldp_switch(
                                 sw, trunk_lod[0]["ifname"]
                             )
-                            # st.write(lldp_lod)
 
                             if lldp_bool:
                                 # Set description
@@ -265,6 +288,7 @@ def main():
                                 uplink_dev = lldp_lod[0]["peerHostname"]
                                 trunk_intf_desc = f"To {lldp_lod[0]['peerHostname']}_{lldp_lod[0]['peerIfname']}"
 
+                    # Adding to the dictionary
                     cfg_dict.update({"uplink_trunk_exists": trunk_bool})
                     cfg_dict.update({"uplink_trunk_lod": trunk_lod})
                     cfg_dict.update({"uplink_trunk_lldp_lod": lldp_lod})
@@ -333,7 +357,7 @@ def main():
                             access_hn=sw,
                             uplink_hn=uplink_dev,
                             cfg_list=cfg_dict["cfg_list"],
-                            force_lab_restart=force_lab_restart
+                            force_lab_restart=force_lab_restart,
                         )
                         # utilities.netmiko_jump()
                     else:
@@ -344,9 +368,15 @@ def main():
                 end_time = datetime.datetime.now()
                 st.markdown(f"**Execution Time: {end_time - start_time}**")
 
+
                 if ready_to_deploy:
                     st.markdown("---")
                     st.subheader(":stopwatch: Change is ready to deploy")
+                    st.image(
+                        "images/Step5PreExecute.jpg",
+                        caption="We are Here",
+                        width=950,
+                    )
             else:
                 # Vlan check failed
                 pass

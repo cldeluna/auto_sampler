@@ -30,10 +30,24 @@ def load_yaml_file(yfile):
 
 
 def main():
+    """
+    This is the main entrance point to calling the Automation Sampler tools
+    :return: N/A
+    """
     # Use the full page instead of a narrow central column
     st.set_page_config(layout="wide")
 
-    # EIA Tools Server
+    with st.sidebar:
+        st.image(
+            "images/EIAlogo_OnWhite-01-Transparent2.jpg",
+            caption="",
+            width=75
+            ,
+        )
+
+        url = "https://eianow.com/"
+        st.markdown(f"**[EIA]({url})**")
+
     st.title("AutoCon1 Automation Sampler")
 
     st.image(

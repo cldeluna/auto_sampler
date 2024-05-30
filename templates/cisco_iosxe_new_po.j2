@@ -1,0 +1,26 @@
+
+interface port-channel {po_num}
+ description {po_des}
+ switchport mode trunk
+ switchport nonegotiate
+ switchport trunk native vlan 666
+ switchport trunk allowed vlan {allowed_vlan_list}
+ spanning-tree portfast disable
+ ip dhcp snooping trust
+ no shutdown
+
+interface range {intf1}, {intf2}
+ switchport mode trunk
+ switchport nonegotiate
+ switchport trunk native vlan 666
+ switchport trunk allowed vlan {allowed_vlan_list}
+ spanning-tree portfast disable
+ ip dhcp snooping trust
+ channel-group {po_num} mode passive
+ no shutdown
+
+interface {intf1}
+ description {intf1_desc}
+
+interface {intf2}
+ description {intf2_desc}

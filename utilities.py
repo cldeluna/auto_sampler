@@ -141,6 +141,31 @@ def find_vlan_on_switch(vlanx, switch):
     return vlan_configured_on_sw, sq_api_response_vlan, sq_api_response_vlan_allvlans
 
 
+def find_vlan_at_site(namespace, vlanx, format="lod"):
+    """
+    For a given namespace find a specific vlan on any device within that namespace.
+    Return a list of dictionaries
+    :param namespace:
+    :param vlanx:
+    :return:
+    """
+
+    # http://10.1.10.47:8000/api/v2/vlan/show?view=latest&namespace=UWACO_Campus&columns=default&vlan=901&access_token=496157e6e869ef7f3d6ecb24a6f6d847b224ee4f
+
+    URI_PATH = "/api/v2/vlan/show"
+    URL_OPTIONS = f"namespace={namespace}&view=latest&columns=default&vlan={vlanx}"
+
+    sq_api_response_vlan = try_sq_rest_call_http(URI_PATH, URL_OPTIONS)
+
+    if format == "lod":
+        return sq_api_response_vlan
+    elif format == 'dictionary':
+        new_dict = {item['hostname']: item for item in sq_api_response_vlan}
+        return new_dict
+    else:
+        return sq_api_response_vlan
+
+
 def get_namespace_list():
 
     # Initialize
@@ -198,11 +223,18 @@ def get_switches_in_location(namespacex):
 
 
 def load_vlan_guidelines():
+    """
+    Load Vlan Guidelines Data Set and return
+    - a list of vlan types
+    - a dictionary fo the data set
+    - a Pandas DataFrame of the data set
+    :return:
+    """
 
-    st.markdown("---")
+    # st.markdown("---")
     vlan_guidelines_df = pd.DataFrame()
     # Load Vlan Guidelines
-    st.markdown("### Loading Vlan Guidelines")
+    # st.markdown("### Loading Vlan Guidelines")
     vlan_guidelines_fn = "vlan_guidelines.yml"
     vlan_guidelines_dict = load_yaml_file(vlan_guidelines_fn)
     vlan_type_list = vlan_guidelines_dict.keys()
@@ -213,7 +245,10 @@ def load_vlan_guidelines():
 
 
 def load_wellknown_actions():
-
+    """
+    Load the entire Well Known Action Data Set and return as a Python dictionary
+    :return:
+    """
     st.write("Loading Well know Actions Data")
     wk_yml_fn = "WellKnownActions_PROD.yml"
     well_known_actions_dict = load_yaml_file(wk_yml_fn)
@@ -222,6 +257,14 @@ def load_wellknown_actions():
 
 
 def load_wellknown_action(act_dict_key):
+    """
+    Load the entire well know actions data set and extrack a specific action
+    Display the Action Workflow
+    Return a dictionary of a specific action
+    :param act_dict_key:
+    :return:
+    """
+
 
     load_wellknown_actions()
 
@@ -243,17 +286,8 @@ def load_wellknown_action(act_dict_key):
     return act_dict
 
 
-# Get MLAG
-
-
-def get_mlag_from_switch(hn):
-    pass
-
-    # http://10.1.10.47:8000/api/v2/mlag/show?hostname=redsea_sw01&view=latest&access_token=496157e6e869ef7f3d6ecb24a6f6d847b224ee4f
-
-
 def get_intf_bonded_switch(switch):
-    pass
+
     # bond
     # http://10.1.10.47:8000/api/v2/interface/show?hostname=atlantic-sw01&view=latest&columns=default&type=bond&access_token=496157e6e869ef7f3d6ecb24a6f6d847b224ee4f
 
@@ -418,6 +452,25 @@ def get_kids(parent_obj):
         cfg_list.extend(child_list)
 
     return cfg_list
+
+
+def split_and_search(out, search_list=[]):
+
+    # Split the output text
+    out_lines = out.splitlines()
+
+    # Check for Vlan 901 and name string in out
+    test_result_dict = dict()
+
+    # Initialize the DICT with FALSE
+    for test in search_list:
+        test_result_dict.update({test: False})
+
+        for line in out_lines:
+            if test in line:
+                test_result_dict.update({test: True})
+
+    return test_result_dict
 
 
 def render_j2template(cfg, j2_template, debug=False):
@@ -647,7 +700,7 @@ def netmiko_jump(
     # Disconnect from the remote device and jump server
     jump_conn.disconnect()
 
-    # TODO: Save Testing Results to Testing Report
+    # Save Testing Results to Testing Report
     # Date stamp for Report Output
     file_timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     cwd_path = os.getcwd()
@@ -781,25 +834,6 @@ def showVersionThroughtJumpHost(jump_host, device):
     netCom.find_prompt()
     out = netCom.send_command("show version")
     st.write(out)
-
-
-def split_and_search(out, search_list=[]):
-
-    # Split the output text
-    out_lines = out.splitlines()
-
-    # Check for Vlan 901 and name string in out
-    test_result_dict = dict()
-
-    # Initialize the DICT with FALSE
-    for test in search_list:
-        test_result_dict.update({test: False})
-
-        for line in out_lines:
-            if test in line:
-                test_result_dict.update({test: True})
-
-    return test_result_dict
 
 
 # From utils_netmiko -----------------------------------
@@ -949,57 +983,6 @@ def send_netmiko_commands(
                 )
 
     return cfgoutput
-
-
-#
-# def try_sq_rest_call(uri_path, url_options, API_ENDPOINT="10.1.10.47", debug=False):
-#     """
-#     SuzieQ API REST Call
-#
-#     """
-#
-#     API_ACCESS_TOKEN = os.getenv("SQ_API_TOKEN")
-#     # UWACO Lab  API_ENDPOINT = "10.1.10.22"
-#
-#     url = f"https://{API_ENDPOINT}:8000{uri_path}?{url_options}&verify=False"
-#     # UWACO LAB
-#     # url = f"http://{API_ENDPOINT}:8000{uri_path}?{url_options}&verify=False"
-#     # url = f"https://{API_ENDPOINT}:8443{uri_path}?{url_options}"
-#     payload = "\r\n"
-#     headers = {
-#         "Content-Type": "text/plain",
-#         "Authorization": f"Bearer {API_ACCESS_TOKEN}",
-#     }
-#
-#     if debug:
-#         st.write(url)
-#
-#     # Send API request, return as JSON
-#     response = dict()
-#     try:
-#         # response = requests.get(url).json()
-#         # st.write(url)
-#         response = requests.get(url, headers=headers, data=payload, verify=False)
-#
-#     except Exception as e:
-#         print(e)
-#         st.error(
-#             "Connection to SuzieQ REST API Failed.  Please confirm the REST API is running!"
-#         )
-#         st.text(e)
-#         # st.stop()
-#         response = False
-#
-#     if debug:
-#         st.write(f"Response is {response}")
-#         if response.json():
-#             st.write(response.json())
-#         else:
-#             st.write("No data returned for REST call")
-#
-#     # Returns full response object
-#     return response
-#
 
 
 def main():

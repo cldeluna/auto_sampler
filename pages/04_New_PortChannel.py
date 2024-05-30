@@ -12,7 +12,7 @@ __date__ = "5/15/24"
 __copyright__ = "Copyright (c) 2023 Claudia"
 __license__ = "Python"
 
-import argparse
+import streamlit as st
 
 
 def some_function():
@@ -20,15 +20,22 @@ def some_function():
 
 
 def main():
-    pass
+    # Use the full page instead of a narrow central column
+    st.set_page_config(layout="wide")
+
+    with st.sidebar:
+        st.image(
+            "images/EIAlogo_OnWhite-01-Transparent2.jpg",
+            caption="",
+            width=75,
+        )
+
+        url = "https://eianow.com/"
+        st.markdown(f"**[EIA]({url})**")
+
+        st.image("images/WorkInProgress.png", width=200)
 
 
 # Standard call to the main() function.
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Script Description",
-                                     epilog="Usage: ' python 04_New_PortChannel' ")
-
-    # parser.add_argument('all', help='Execute all exercises in week 4 assignment')
-    # parser.add_argument('-a', '--all', help='Execute all exercises in week 4 assignment', action='store_true',default=False)
-    arguments = parser.parse_args()
+if __name__ == "__main__":
     main()
